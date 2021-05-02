@@ -10,4 +10,8 @@ class Job:
     proc_time = 0
     complete = False
 
-    
+class Task:
+    def __init__(self, job_list):
+        self.job_list = job_list
+
+    task_complete = False
