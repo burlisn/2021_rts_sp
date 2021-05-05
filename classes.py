@@ -11,9 +11,10 @@ class Job:
         self.wait_time = 0
         self.update_wait_time = False
 
-    def execute(self):
+    def execute(self, tick):
         if self.update_wait_time == True:
             self.update_wait_time = False
+            self.wait_time = tick - self.rel
         self.proc_time += 1
         if(self.proc_time == self.execu):
             self.complete = True
@@ -38,8 +39,8 @@ class Task:
             if job.complete == True:
                 self.jobs_complete.append(job)
                 self.jobs_ready.pop(i)
-            if job.update_wait_time == True:
-                job.wait_time += 1
+            # if job.update_wait_time == True:
+            #     job.wait_time += 1
 
     def update_jobs_ready(self, tick): # Adds a job to the ready list if it is ready to execute
         for job in self.job_list:

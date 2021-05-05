@@ -7,24 +7,35 @@
 import classes
 import constants
 import random
+import copy
 
 def main() -> None:
     tasks_complete = 0
 
-    for i in range(1000):
-        task = classes.Task(generate_jobs())
+    for i in range(constants.RUNS):
+        task_keep = classes.Task(generate_jobs())
+        task_send = copy.deepcopy(task_keep)
+        
         print("Jobs:")
-        print(len(task.job_list))
-        for job in task.job_list:
+        print(len(task_send.job_list))
+        for job in task_send.job_list:
             print(job.rel, job.execu, job.abs_dead)
-        fifo(task)
-        analysis(task)
-        print("--------------------")
+        
+        print("Round Robin:")
+        round_robin(task_send)
+        analysis(task_send)
 
-        if task.task_complete:
+        task_send = copy.deepcopy(task_keep)
+        print("EDF:")
+        round_robin(task_send)
+        analysis(task_send)
+
+        if task_send.task_complete:
             tasks_complete += 1
+        
+        print("-------------------------")
 
-    print(tasks_complete)
+    print("Tasks completed:", tasks_complete, "/", constants.RUNS)
 
 # Generates a list of jobs that follow the rules
 def generate_jobs():
@@ -61,7 +72,7 @@ def round_robin(task):
 
         if task.jobs_ready:
             i = i % len(task.jobs_ready)
-            task.jobs_ready[i].execute()
+            task.jobs_ready[i].execute(tick)
             task.update_jobs_complete()
             two_tick = two_tick + 1
 
@@ -82,18 +93,19 @@ def edf(task):
     while tick < 120 and task.task_complete == False:
         task.update_jobs_ready(tick)
 
-        if len(task.jobs_ready) > 0:
+        if task.jobs_ready:
             ded = 119
             for j,job in enumerate(task.jobs_ready):
                 if job.abs_dead <= ded:
+                    ded = job.abs_dead
                     i = j
 
-            task.jobs_ready[i].execute()
+            task.jobs_ready[i].execute(tick)
 
         task.update_jobs_complete()
         task.task_complete_check()
 
-        tick += 1              
+        tick += 1
 
 def fifo(task):
     tick = 0
@@ -103,7 +115,7 @@ def fifo(task):
         task.update_jobs_ready(tick)
 
         if task.jobs_ready:
-            task.jobs_ready[0].execute()
+            task.jobs_ready[0].execute(tick)
         
         task.update_jobs_complete()
         task.task_complete_check()
@@ -128,7 +140,6 @@ def analysis(task):
     # Print statistics
     print("Average wait time:", avg_wait_time)
     print("Jobs complete:", total_complete)
-
 
 if __name__ == "__main__":
     main()
