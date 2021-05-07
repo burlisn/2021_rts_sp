@@ -1,13 +1,15 @@
-class My_test:
-    def __init__(self, x):
-        self.x = x
+class Test:
+    def __init__(self):
         self.y = 5
 
-list1 = []
-list2 = []
+def changes(test):
+    test.y += 1
 
-a = My_test(5)
-list1.append(a)
-list2.append(a)
-list2[0].x = 22
-print(list1[0].x)
+s = Test()
+p = Test()
+d = Test()
+
+changes(s)
+
+
+print(s.y, p.y, d.y)
