@@ -15,6 +15,7 @@ def main() -> None:
     rr_stats = classes.Alg_data()
     edf_stats = classes.Alg_data()
     fifo_stats = classes.Alg_data()
+    srpt_stats = classes.Alg_data()
 
     # Running the simulation for each randomly generated task
     for i in range(constants.RUNS):
@@ -51,22 +52,31 @@ def main() -> None:
         fifo(task_send)
         task_analysis(task_send, fifo_stats)
         print("")
+
+                # Perform and analyze FIFO
+        del task_send
+        task_send = copy.deepcopy(task_keep)
+        print("SRPT:")
+        srpt(task_send)
+        task_analysis(task_send, srpt_stats)
+        print("")
         
         print("----------------------------------------------------------")
 
     rr_stats.averages()
     edf_stats.averages()
     fifo_stats.averages()
+    srpt_stats.averages()
 
     # Print algorithm statistics
     print("---------------- ALGORITHM COMPARISON --------------------")
-    print("Tasks complete: \nRound Robin - {}\nEDF - {}\nFIFO - {}".format(rr_stats.tasks_complete, edf_stats.tasks_complete, fifo_stats.tasks_complete))
+    print("Tasks complete: \nRound Robin - {}\nEDF - {}\nFIFO - {}\nSRPT - {}".format(rr_stats.tasks_complete, edf_stats.tasks_complete, fifo_stats.tasks_complete, srpt_stats.tasks_complete))
     print("")
-    print("Jobs complete: \nRound Robin - {}\nEDF - {}\nFIFO - {}".format(rr_stats.jobs_complete, edf_stats.jobs_complete, fifo_stats.jobs_complete))
+    print("Jobs complete: \nRound Robin - {}\nEDF - {}\nFIFO - {}\nSRPT - {}".format(rr_stats.jobs_complete, edf_stats.jobs_complete, fifo_stats.jobs_complete, srpt_stats.jobs_complete))
     print("")
-    print("Average wait time: \nRound Robin - {}\nEDF - {}\nFIFO - {}".format(rr_stats.avg_wait_time, edf_stats.avg_wait_time, fifo_stats.avg_wait_time))
+    print("Average wait time: \nRound Robin - {}\nEDF - {}\nFIFO - {}\nSRPT - {}".format(rr_stats.avg_wait_time, edf_stats.avg_wait_time, fifo_stats.avg_wait_time, srpt_stats.avg_wait_time))
     print("")
-    print("Average response time: \nRound Robin - {}\nEDF - {}\nFIFO - {}".format(rr_stats.avg_response_time, edf_stats.avg_response_time, fifo_stats.avg_response_time))
+    print("Average response time: \nRound Robin - {}\nEDF - {}\nFIFO - {}\nSRPT - {}".format(rr_stats.avg_response_time, edf_stats.avg_response_time, fifo_stats.avg_response_time, srpt_stats.avg_response_time))
     print("")
 
 # Generates a list of jobs that follow the rules
@@ -156,9 +166,30 @@ def fifo(task):
         task.update_jobs_complete()
         task.task_complete_check()
         
-
         tick += 1
 
+def srpt(task: classes.Task):
+    tick = 0
+    i = 0
+
+    while tick < 120 and task.task_complete == False:
+        task.update_jobs_ready(tick)
+        short_proc = 120
+
+        if task.jobs_ready:
+            for j, job in enumerate(task.jobs_ready):
+                if job.execu - job.proc_time <= short_proc:
+                    i = j
+                    short_proc = job.execu - job.proc_time
+            
+            task.jobs_ready[i].execute(tick)
+            task.cpu_time += 1
+
+        task.update_jobs_complete()
+        task.task_complete_check()
+
+        tick += 1
+            
 
 
 # Returns the analysis statistics
